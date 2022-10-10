@@ -1,13 +1,9 @@
 import datetime
-
-import imutils
-from scipy.spatial import distance as dist
-from imutils import perspective
-from imutils import contours
+import time
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 
+none_frame_counter = 0
 
 def main(thresh_1=10, thresh_2=100):
     vcap = cv2.VideoCapture("rtsp://admin:asdf@192.168.86.25:554/")
@@ -38,9 +34,17 @@ def main(thresh_1=10, thresh_2=100):
         ret, frame = vcap.read()
 
         if frame is None:
-            print("Frame was empty. Continue...")
+            if none_frame_counter > 20:
+                none_frame_counter = 0
+                
+                # retry connecting to the webcam
+                vcap = cv2.VideoCapture("rtsp://admin:asdf@192.168.86.25:554/")
+            
+            print("Frame was empty. Continue... none frame counter is: ")
+            print(none_frame_counter)
+            time.sleep(1)
+            none_frame_counter += 1
             continue
-
 
         img_blur = cv2.bilateralFilter(frame, d=15, sigmaSpace=75, sigmaColor=75)
         #img_blur = cv2.GaussianBlur(img, (7, 7), 0)
@@ -140,15 +144,15 @@ def main(thresh_1=10, thresh_2=100):
                     lineType)
 
 
-        cv2.imshow('VIDEO', img_box)
-        cv2.waitKey(1)
+        #cv2.imshow('VIDEO', img_box)
+        #cv2.waitKey(1)
 
         now = datetime.datetime.now()
         current_pellet_area=str(f"{current_area:.0f}")
         if now > log_time:
             f.write(f"{now.isoformat()}, {current_pellet_area}\n")
             log_time = log_time + datetime.timedelta(seconds=10)
-            print(f"now: {now} log_time: {log_time.isoformat()}")
+            #print(f"now: {now} next_log_time: {log_time.isoformat()}")
 
 
 # Press the green button in the gutter to run the script.
