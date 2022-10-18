@@ -107,7 +107,7 @@ def process_image():
 
             if now > log_time:
                 f.write(f"{now.isoformat()}, {area_moving_mean}, {area}\n")
-                log_time = log_time + datetime.timedelta(seconds=300)
+                log_time = log_time + datetime.timedelta(seconds=60)
                 # print(f"now: {now} next_log_time: {log_time.isoformat()}")
                 cv2.imwrite("pellets.jpg", masked_frame)
 
