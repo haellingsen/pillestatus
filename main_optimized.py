@@ -18,6 +18,7 @@ def empty(value):
 
 
 def hsv_mask_and_area(frame):
+    print("Processing frame")
     # HSV mask
     lh = 26
     ls = 20
@@ -134,6 +135,7 @@ def put_text(frame, now, area):
 
 
 def get_video_capture():
+    print("getting video capture from " + CAM_IP)
     vcap = cv2.VideoCapture(RTSP_URL)
     vcap.set(cv2.CAP_PROP_FRAME_HEIGHT, 640)
     vcap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
