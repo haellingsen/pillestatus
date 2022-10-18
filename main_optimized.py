@@ -140,7 +140,7 @@ def get_video_capture():
 
     # Check success
     if not vcap.isOpened():
-        raise Exception("Could not open video device")
+        print("Could not open video device")
     return vcap
 
 
