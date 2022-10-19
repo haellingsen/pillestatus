@@ -8,9 +8,10 @@ USER_NAME = "admin"
 PASSWORD = "asdf"
 RTSP_URL = f"rtsp://{USER_NAME}:{PASSWORD}@{CAM_IP}/"
 
-THRESHOLD_MIN = 0
+THRESHOLD_MIN = 73
 THRESHOLD_MAX = 255
 THRESHOLD_AREA = 100000
+MOVING_AVERAGE_WINDOW = 200
 
 
 def empty(value):
@@ -92,7 +93,7 @@ def process_image():
             masked_frame, area = hsv_mask_and_area(masked_frame)
             areas.append(area)
             area_moving_mean = int(sum(areas) / len(areas))
-            if len(areas) > 50: areas.pop(0)
+            if len(areas) > MOVING_AVERAGE_WINDOW: areas.pop(0)
             masked_frame = put_text(masked_frame, now, area_moving_mean)
 
 #           print(areas)
