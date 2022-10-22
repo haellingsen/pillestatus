@@ -8,7 +8,7 @@ USER_NAME = "admin"
 PASSWORD = "asdf"
 RTSP_URL = f"rtsp://{USER_NAME}:{PASSWORD}@{CAM_IP}/"
 
-THRESHOLD_MIN = 73
+THRESHOLD_MIN = 42
 THRESHOLD_MAX = 255
 THRESHOLD_AREA = 100000
 MOVING_AVERAGE_WINDOW = 200
@@ -21,9 +21,9 @@ def empty(value):
 def hsv_mask_and_area(frame):
     print("Processing frame")
     # HSV mask
-    lh = 26
-    ls = 20
-    lv = 34
+    lh = 42
+    ls = 29
+    lv = 3
     uh = 179
     us = 255
     uv = 255
