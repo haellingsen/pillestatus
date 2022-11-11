@@ -60,7 +60,7 @@ def hsv_mask_and_area(frame):
             frame_with_contours = cv2.drawContours(frame_with_contours, [largest_contour], 0, (0, 255, 0), 2)
             frame_with_contours = cv2.drawContours(frame_with_contours, [convex_hull_contour], 0, (0, 0, 255), 2)
 
-    return frame_with_contours, convex_hull_contour_area
+    return frame_with_contours, convex_hull_contour_area, largest_contour_area
 
 
 def process_image():
@@ -69,6 +69,7 @@ def process_image():
     now = datetime.datetime.now()
     log_time = now
     areas = []
+    areas_contour = []
 
     with open("log.txt", 'a', buffering=1) as f:
         while 1:
@@ -90,10 +91,14 @@ def process_image():
 
             now = datetime.datetime.now()
             masked_frame = frame.copy()
-            masked_frame, area = hsv_mask_and_area(masked_frame)
+            masked_frame, area, area_contour = hsv_mask_and_area(masked_frame)
             areas.append(area)
+            areas_contour.append(area_contour)
             area_moving_mean = int(sum(areas) / len(areas))
-            if len(areas) > MOVING_AVERAGE_WINDOW: areas.pop(0)
+            area_contour_moving_mean = int(sum(areas_contour) / len(areas_contour))
+            if len(areas) > MOVING_AVERAGE_WINDOW:
+                areas.pop(0)
+                areas_contour.pop(0)
             masked_frame = put_text(masked_frame, now, area_moving_mean)
 
 #           print(areas)
@@ -106,11 +111,10 @@ def process_image():
                 cv2.destroyAllWindows()
                 break
 
-            if now > log_time:
-                f.write(f"{now.isoformat()}, {area_moving_mean}, {area}\n")
-                log_time = log_time + datetime.timedelta(seconds=60)
-                # print(f"now: {now} next_log_time: {log_time.isoformat()}")
-                cv2.imwrite("pellets.jpg", masked_frame)
+            f.write(f"{now.isoformat()}, {area_moving_mean}, {area}, {area_contour_moving_mean}, {area_contour}\n")
+            # print(f"now: {now} next_log_time: {log_time.isoformat()}")
+            cv2.imwrite("pellets.jpg", masked_frame)
+            cv2.imwrite(now + "_pellets.jpg", frame)
 
 
 def put_text(frame, now, area):
