@@ -2,6 +2,8 @@ import datetime
 import time
 import cv2
 import numpy as np
+import requests
+import json
 
 CAM_IP = "192.168.86.25"
 USER_NAME = "admin"
@@ -13,6 +15,33 @@ THRESHOLD_MAX = 255
 THRESHOLD_AREA = 100000
 MOVING_AVERAGE_WINDOW = 200
 
+
+def get_weather_data():
+    url = "https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=57.455&lon=10.226"
+
+
+    headers = {
+        'User-Agent': 'My User Agent 1.0',
+        'sitename': "https://github.com/appselskapet"
+    }
+
+    response = requests.get(url, headers=headers)
+
+    # Initialize a variable sitename with the name of your website and some contact info (e.g. a GitHub URL, a non-personal email address, a working website or a mobile app store appname). Do not fake this or you are likely to be permanently blacklisted!
+
+    # Construct the Locationforecast URL with the necessary parameters. Always use HTTPS, as lots of unencrypted traffic can make you throttled or blocked.
+
+    # Generate a Useragent object, with a custom User-Agent request header using the sitename variable as value. If this is missing or generic, you will get a 403 Forbidden response.
+    # Call the request method of the Useragent object with the Locationforecast URL. For optimal performance, use a callback or promise which will enable you to continue running while the data is being downloaded (non-blocking I/O).
+    # When the download is complete, check the HTTP Status header and handle each condition separately (see the Status Code documentation for specifics). In particular, pay special attention to the 203 (deprecated product) and 429 (throttling) statuses. Also check the Expires and Last-Modified timestamp headers (in RFC 1123 format), parse and store them in variables for later use.
+    # If the result is a success (a 2xx status), send the request body to the JSON parser, which should return a suitable data structure for your programming language.
+    # Before doing anything else, you should store the returned data structure in some semi-permanent local storage (e.g. on disk or an in-memory key-value store), along with the expires and last_modified timestamp variables above.
+    # You can now process the forecast JSON data as necessary and present it to the user in a suitable fashion.
+    # If, at a later time you want to repeat the request (e.g. the user has refreshed the page, or you want to update the data) you must first check if the current time is later than the expires value stored earlier; if not you must continue using the stored data. Do not send a new request every time the GPS position changes by a metre!
+
+    # If the expires timestamp is in the past, you can repeat the request. However you should do this using the If-Modified-Since HTTP request header with the stored last_modified variable above as value. If the data has not been updated since your last request you will get a 304 Not Modified status code back with no body; you should then continue using the stored data until you get a 200 OK response.
+
+    return response
 
 def empty(value):
     pass
@@ -104,7 +133,7 @@ def process_image():
 #           print(areas)
 #            cv2.imshow("", masked_frame)
 
-            time.sleep(10)
+            time.sleep(60*5)
             k = cv2.waitKey(1000) & 0xFF
             if k == ord('q'):
                 vcap.release()
@@ -114,7 +143,7 @@ def process_image():
             f.write(f"{now.isoformat()}, {area_moving_mean}, {area}, {area_contour_moving_mean}, {area_contour}\n")
             # print(f"now: {now} next_log_time: {log_time.isoformat()}")
             cv2.imwrite("pellets.jpg", masked_frame)
-            cv2.imwrite(now + "_pellets.jpg", frame)
+            cv2.imwrite(str(now.isoformat()).replace(":","") + "_pellets.jpg", frame)
 
 
 def put_text(frame, now, area):
@@ -153,3 +182,9 @@ def get_video_capture():
 
 if __name__ == '__main__':
     process_image()
+    #weather_data = get_weather_data()
+
+#    if weather_data.status_code == 200:
+ #       print(weather_data.json()["properties"]["timeseries"][0]["data"]["instant"]["details"]["air_temperature"])
+
+
