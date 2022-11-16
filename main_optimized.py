@@ -10,6 +10,8 @@ USER_NAME = "admin"
 PASSWORD = "asdf"
 RTSP_URL = f"rtsp://{USER_NAME}:{PASSWORD}@{CAM_IP}/"
 
+LOG_INTERVAL_S=60*5
+
 THRESHOLD_MIN = 42
 THRESHOLD_MAX = 255
 THRESHOLD_AREA = 100000
@@ -100,7 +102,7 @@ def process_image():
     areas = []
     areas_contour = []
 
-    with open("log.txt", 'a', buffering=1) as f:
+    with open("/home/pi/pelletstat/log.txt", 'a', buffering=1) as f:
         while 1:
             ret, frame = vcap.read()
 
@@ -133,17 +135,19 @@ def process_image():
 #           print(areas)
 #            cv2.imshow("", masked_frame)
 
-            time.sleep(60*5)
+            time.sleep(10)
             k = cv2.waitKey(1000) & 0xFF
             if k == ord('q'):
                 vcap.release()
                 cv2.destroyAllWindows()
                 break
-
-            f.write(f"{now.isoformat()}, {area_moving_mean}, {area}, {area_contour_moving_mean}, {area_contour}\n")
-            # print(f"now: {now} next_log_time: {log_time.isoformat()}")
-            cv2.imwrite("pellets.jpg", masked_frame)
-            cv2.imwrite(str(now.isoformat()).replace(":","") + "_pellets.jpg", frame)
+            time_to_log = now > log_time
+            if time_to_log:
+                f.write(f"{now.isoformat()}, {area_moving_mean}, {area}, {area_contour_moving_mean}, {area_contour}\n")
+                # print(f"now: {now} next_log_time: {log_time.isoformat()}")
+                log_time = log_time + datetime.timedelta(seconds=LOG_INTERVAL_S)
+                cv2.imwrite("/home/pi/pelletstat/pellets.jpg", masked_frame)
+                cv2.imwrite("/home/pi/pelletstat/"+str(now.isoformat()).replace(":","") + "_pellets.jpg", frame)
 
 
 def put_text(frame, now, area):
