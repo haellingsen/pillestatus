@@ -102,52 +102,55 @@ def process_image():
     areas = []
     areas_contour = []
 
-    with open("/home/pi/pelletstat/log.txt", 'a', buffering=1) as f:
-        while 1:
-            ret, frame = vcap.read()
+    while 1:
+        ret, frame = vcap.read()
 
-            if frame is None:
-                if none_frame_counter > 20:
-                    none_frame_counter = 0
-                    # retry connecting to the webcam
-                    vcap.release()
-                    time.sleep(5)
-                    vcap = get_video_capture()
+        if frame is None:
+            if none_frame_counter > 20:
+                none_frame_counter = 0
+                # retry connecting to the webcam
+                vcap.release()
+                time.sleep(5)
+                vcap = get_video_capture()
 
-                print("Frame was empty. Continue... none frame counter is: ")
-                print(none_frame_counter)
-                time.sleep(1)
-                none_frame_counter += 1
-                continue
+            print("Frame was empty. Continue... none frame counter is: ")
+            print(none_frame_counter)
+            time.sleep(1)
+            none_frame_counter += 1
+            continue
 
-            now = datetime.datetime.now()
-            masked_frame = frame.copy()
-            masked_frame, area, area_contour = hsv_mask_and_area(masked_frame)
-            areas.append(area)
-            areas_contour.append(area_contour)
-            area_moving_mean = int(sum(areas) / len(areas))
-            area_contour_moving_mean = int(sum(areas_contour) / len(areas_contour))
-            if len(areas) > MOVING_AVERAGE_WINDOW:
-                areas.pop(0)
-                areas_contour.pop(0)
-            masked_frame = put_text(masked_frame, now, area_moving_mean)
+        now = datetime.datetime.now()
+        masked_frame = frame.copy()
+        masked_frame, area, area_contour = hsv_mask_and_area(masked_frame)
+        areas.append(area)
+        areas_contour.append(area_contour)
+        area_moving_mean = int(sum(areas) / len(areas))
+        area_contour_moving_mean = int(sum(areas_contour) / len(areas_contour))
+        if len(areas) > MOVING_AVERAGE_WINDOW:
+            areas.pop(0)
+            areas_contour.pop(0)
+
+        masked_frame = put_text(masked_frame, now, area_moving_mean)
 
 #           print(areas)
 #            cv2.imshow("", masked_frame)
 
-            time.sleep(10)
-            k = cv2.waitKey(1000) & 0xFF
-            if k == ord('q'):
-                vcap.release()
-                cv2.destroyAllWindows()
-                break
-            time_to_log = now > log_time
-            if time_to_log:
+        time.sleep(10)
+
+        k = cv2.waitKey(1000) & 0xFF
+        if k == ord('q'):
+            vcap.release()
+            cv2.destroyAllWindows()
+            break
+
+        time_to_log = now > log_time
+        if time_to_log:
+            with open("/home/pi/pelletstat/log.txt", 'a', buffering=1) as f:
                 f.write(f"{now.isoformat()}, {area_moving_mean}, {area}, {area_contour_moving_mean}, {area_contour}\n")
-                # print(f"now: {now} next_log_time: {log_time.isoformat()}")
-                log_time = log_time + datetime.timedelta(seconds=LOG_INTERVAL_S)
-                cv2.imwrite("/home/pi/pelletstat/pellets.jpg", masked_frame)
-                cv2.imwrite("/home/pi/pelletstat/"+str(now.isoformat()).replace(":","") + "_pellets.jpg", frame)
+            # print(f"now: {now} next_log_time: {log_time.isoformat()}")
+            log_time = log_time + datetime.timedelta(seconds=LOG_INTERVAL_S)
+            cv2.imwrite("/home/pi/pelletstat/pellets.jpg", masked_frame)
+            cv2.imwrite("/home/pi/pelletstat/"+str(now.isoformat()).replace(":","") + "_pellets.jpg", frame)
 
 
 def put_text(frame, now, area):
